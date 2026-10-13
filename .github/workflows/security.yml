@@ -1,0 +1,64 @@
+name: Security
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  schedule:
+    - cron: "0 6 * * 1" # weekly, Monday 06:00 UTC: catches newly disclosed CVEs
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write # upload SARIF to GitHub code scanning
+
+jobs:
+  snyk:
+    name: Snyk (dependencies + code)
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v5
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Open-source dependency scan (respects the .snyk policy file).
+      # continue-on-error keeps CI green on forks or before SNYK_TOKEN is configured.
+      - name: Snyk Open Source (snyk test)
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        with:
+          command: test
+          args: --severity-threshold=high --policy-path=.snyk --sarif-file-output=snyk-deps.sarif
+
+      # Static analysis of first-party code (SAST).
+      - name: Snyk Code (snyk code test)
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        with:
+          command: code test
+          args: --severity-threshold=medium --sarif-file-output=snyk-code.sarif
+
+      - name: Upload dependency results to code scanning
+        if: always() && hashFiles('snyk-deps.sarif') != ''
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk-deps.sarif
+          category: snyk-open-source
+
+      - name: Upload code results to code scanning
+        if: always() && hashFiles('snyk-code.sarif') != ''
+        continue-on-error: true
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: snyk-code.sarif
+          category: snyk-code

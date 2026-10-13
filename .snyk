@@ -1,0 +1,19 @@
+# Snyk (https://snyk.io) policy file: documents accepted risk for known issues.
+version: v1.25.1
+
+# Every ignore must carry a reason and an expiry so it is revisited, e.g.
+#   SNYK-JS-EXAMPLE-0000000:
+#     - '*':
+#         reason: Dev-only tooling, not shipped in the production bundle
+#         expires: 2026-12-31T00:00:00.000Z
+ignore: {}
+
+patch: {}
+
+# Snyk Code: skip generated SQL migrations, JSON exports and test fixtures.
+exclude:
+  global:
+    - drizzle/**
+    - observability/**
+    - docs/**
+    - tests/**
