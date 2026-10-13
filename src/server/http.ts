@@ -2,6 +2,8 @@ import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { formatIssues, uuidSchema } from "@/lib/validators/common";
 import { AppError, NotFoundError, RateLimitError, ValidationError } from "@/server/errors";
+import { logger } from "@/server/observability/logger";
+import { track } from "@/server/observability/metrics";
 
 export interface ErrorBody {
   error: { code: string; message: string; details?: unknown };
@@ -46,16 +48,30 @@ export function clientIp(headers: Headers): string {
 type RouteHandler<C> = (request: NextRequest, context: C) => Promise<Response>;
 
 /**
- * Wraps a route handler with uniform error mapping. `name` identifies the
- * route in logs and metrics.
+ * Wraps a route handler with uniform error mapping, a structured access log
+ * line and request metrics. `name` identifies the route in logs and metrics.
  */
 export function withApi<C>(name: string, handler: RouteHandler<C>): RouteHandler<C> {
   return async (request, context) => {
+    const started = performance.now();
+    let response: Response;
     try {
-      return await handler(request, context);
+      response = await handler(request, context);
     } catch (error) {
-      return errorResponse(error);
+      response = errorResponse(error);
+      if (response.status >= 500) logger.error({ err: error, route: name }, "Unhandled API error");
     }
+    const durationMs = Math.round(performance.now() - started);
+    track.apiRequest(durationMs, { route: name, method: request.method, status: response.status });
+    logger.info(
+      {
+        route: name,
+        duration_ms: durationMs,
+        http: { method: request.method, status_code: response.status, url_details: { path: request.nextUrl.pathname } },
+      },
+      `${request.method} ${request.nextUrl.pathname} ${response.status}`,
+    );
+    return response;
   };
 }
 

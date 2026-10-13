@@ -1,0 +1,22 @@
+{
+  "name": "[opsdesk-web] AI assist p95 latency above 20s",
+  "type": "query alert",
+  "query": "avg(last_15m):avg:opsdesk.ai.latency_ms.95percentile{env:production,provider:anthropic} > 20000",
+  "message": "{{#is_alert}}AI assist p95 latency is {{value}} ms. Users are waiting on summaries and drafts.{{/is_alert}}\n\nCheck the provider status page and the AI error rate on the dashboard.\n@slack-opsdesk-alerts",
+  "tags": [
+    "service:opsdesk-web",
+    "team:platform",
+    "managed-by:repo",
+    "area:ai"
+  ],
+  "priority": 3,
+  "options": {
+    "thresholds": {
+      "critical": 20000,
+      "warning": 12000
+    },
+    "notify_no_data": false,
+    "require_full_window": false,
+    "include_tags": true
+  }
+}

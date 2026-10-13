@@ -12,6 +12,8 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
+  // Pin the project root (a lockfile in a parent directory would otherwise be picked up).
+  outputFileTracingRoot: process.cwd(),
   // Native / WASM / auto-instrumented packages must be loaded from node_modules
   // at runtime rather than bundled, so dd-trace can patch them and PGlite can
   // find its .wasm assets.

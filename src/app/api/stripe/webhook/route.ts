@@ -3,6 +3,8 @@ import { handleStripeWebhook } from "@/server/billing/webhook";
 import { getBillingConfig, getStripe, priceToPlanResolver } from "@/server/billing/stripe";
 import { getDb } from "@/server/db/client";
 import { errorResponse } from "@/server/http";
+import { logger } from "@/server/observability/logger";
+import { track } from "@/server/observability/metrics";
 
 /**
  * Stripe webhook endpoint. The signature is computed over the exact bytes
@@ -21,8 +23,13 @@ export async function POST(request: Request) {
       await request.text(),
       request.headers.get("stripe-signature"),
     );
+    track.webhook(outcome.status, outcome.type);
+    logger.info({ stripe: outcome }, `Stripe webhook ${outcome.type}: ${outcome.status}`);
     return NextResponse.json({ received: true, ...outcome });
   } catch (error) {
+    // Signature failures and processing errors both alert via the webhook-failure monitor.
+    track.webhook("failed", "unknown");
+    logger.error({ err: error }, "Stripe webhook failed");
     return errorResponse(error);
   }
 }

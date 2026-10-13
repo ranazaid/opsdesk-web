@@ -1,0 +1,22 @@
+{
+  "name": "[opsdesk-web] API p95 latency above 1.5s",
+  "type": "query alert",
+  "query": "avg(last_10m):avg:opsdesk.api.latency_ms.95percentile{env:production} > 1500",
+  "message": "{{#is_alert}}API p95 latency is {{value}} ms (threshold 1500 ms).{{/is_alert}}\n{{#is_warning}}API p95 latency is creeping up: {{value}} ms.{{/is_warning}}\n\nCheck the slowest routes on the dashboard and the APM service page for slow Postgres spans.\n@slack-opsdesk-alerts",
+  "tags": [
+    "service:opsdesk-web",
+    "team:platform",
+    "managed-by:repo"
+  ],
+  "priority": 3,
+  "options": {
+    "thresholds": {
+      "critical": 1500,
+      "warning": 1000
+    },
+    "notify_no_data": false,
+    "require_full_window": false,
+    "renotify_interval": 60,
+    "include_tags": true
+  }
+}

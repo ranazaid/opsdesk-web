@@ -4,6 +4,7 @@ import type { Actor } from "@/server/auth/actor";
 import { assertAiQuota } from "@/server/billing/entitlements";
 import type { Database } from "@/server/db/client";
 import { aiUsage } from "@/server/db/schema";
+import { track } from "@/server/observability/metrics";
 import { rateLimiters } from "@/server/rate-limit";
 import { requirePermission } from "@/server/rbac";
 import { getTicket, listComments } from "@/server/tickets/service";
@@ -85,9 +86,16 @@ export async function* runAiAssist(
   const started = performance.now();
   let usage: AiUsageReport | null = null;
 
-  for await (const event of provider.stream(prepared.request, options.signal)) {
-    if (event.type === "text") yield event.text;
-    else usage = event.usage;
+  const tags = { task: prepared.request.task, provider: provider.name, model: provider.model };
+
+  try {
+    for await (const event of provider.stream(prepared.request, options.signal)) {
+      if (event.type === "text") yield event.text;
+      else usage = event.usage;
+    }
+  } catch (error) {
+    track.aiRequest({ ...tags, outcome: "error" });
+    throw error;
   }
   if (!usage) return null; // aborted before completion: nothing is billed against the quota
 
@@ -117,6 +125,10 @@ export async function* runAiAssist(
       metadata: { provider: result.provider, model: result.model, latencyMs: result.latencyMs },
     });
   });
+  track.aiRequest({ ...tags, outcome: "success" });
+  track.aiLatency(result.latencyMs, tags);
+  track.aiTokens(usage.inputTokens, { direction: "input", provider: provider.name, model: provider.model });
+  track.aiTokens(usage.outputTokens, { direction: "output", provider: provider.name, model: provider.model });
   options.onComplete?.(result);
   return result;
 }

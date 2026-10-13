@@ -1,0 +1,23 @@
+{
+  "name": "[opsdesk-web] Stripe webhook failures",
+  "type": "query alert",
+  "query": "sum(last_15m):sum:opsdesk.stripe.webhook.failed{env:production}.as_count() > 3",
+  "message": "{{#is_alert}}{{value}} Stripe webhooks failed in the last 15 minutes. Subscriptions may be out of sync with plan entitlements.{{/is_alert}}\n{{#is_warning}}A Stripe webhook failed.{{/is_warning}}\n\nCheck for signature errors (rotated STRIPE_WEBHOOK_SECRET?) in logs, then replay failed events from the Stripe dashboard; processing is idempotent.\n@slack-opsdesk-alerts @pagerduty-opsdesk-billing",
+  "tags": [
+    "service:opsdesk-web",
+    "team:platform",
+    "managed-by:repo",
+    "area:billing"
+  ],
+  "priority": 1,
+  "options": {
+    "thresholds": {
+      "critical": 3,
+      "warning": 1
+    },
+    "notify_no_data": false,
+    "require_full_window": false,
+    "renotify_interval": 30,
+    "include_tags": true
+  }
+}

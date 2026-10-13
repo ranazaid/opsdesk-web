@@ -7,6 +7,7 @@ import type { ActionState } from "@/lib/action-state";
 import { toActionError } from "@/server/actions";
 import { requireActor } from "@/server/auth/session";
 import { getDb } from "@/server/db/client";
+import { track } from "@/server/observability/metrics";
 import { addComment, createTicket, updateTicket } from "@/server/tickets/service";
 
 export async function createTicketAction(_previous: ActionState, formData: FormData): Promise<ActionState> {
@@ -14,7 +15,9 @@ export async function createTicketAction(_previous: ActionState, formData: FormD
   let ticketId: string;
   try {
     const input = createTicketSchema.parse(Object.fromEntries(formData));
-    ticketId = (await createTicket(await getDb(), actor, input)).id;
+    const ticket = await createTicket(await getDb(), actor, input);
+    track.ticketCreated({ plan: actor.plan, priority: ticket.priority, channel: "web" });
+    ticketId = ticket.id;
   } catch (error) {
     return toActionError(error);
   }

@@ -4,6 +4,7 @@ import { getAiProvider } from "@/server/ai";
 import { generateAiAssist, prepareAiAssist, runAiAssist, toTextStream } from "@/server/ai/service";
 import { apiContext } from "@/server/auth/bearer";
 import { parseJson, withApi } from "@/server/http";
+import { logger } from "@/server/observability/logger";
 
 /**
  * POST /api/v1/ai/summary  { ticketId, task?: "summary" | "reply", stream?: boolean }
@@ -17,7 +18,7 @@ export const POST = withApi("v1.ai.summary", async (request) => {
 
   if (input.stream) {
     const body = toTextStream(runAiAssist(db, prepared, provider, { signal: request.signal }), (error) =>
-      console.error("AI stream failed", error),
+      logger.error({ err: error, ticketId: prepared.ticketId }, "AI stream failed"),
     );
     return new Response(body, { headers: { "Content-Type": "text/plain; charset=utf-8", "Cache-Control": "no-store" } });
   }

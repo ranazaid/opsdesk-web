@@ -5,6 +5,7 @@ import { getCurrentActor } from "@/server/auth/session";
 import { getDb } from "@/server/db/client";
 import { UnauthorizedError } from "@/server/errors";
 import { parseId, parseJson, withApi } from "@/server/http";
+import { logger } from "@/server/observability/logger";
 import { requirePermission } from "@/server/rbac";
 
 /**
@@ -22,7 +23,7 @@ export const POST = withApi("web.ai.assist", async (request, { params }: RouteCo
   const prepared = await prepareAiAssist(db, actor, parseId((await params).id), task);
 
   const body = toTextStream(runAiAssist(db, prepared, provider, { signal: request.signal }), (error) => {
-    console.error("AI stream failed", error);
+    logger.error({ err: error, ticketId: prepared.ticketId }, "AI stream failed");
   });
   return new Response(body, {
     headers: {

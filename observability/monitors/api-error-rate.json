@@ -1,0 +1,23 @@
+{
+  "name": "[opsdesk-web] API 5xx error rate is high",
+  "type": "query alert",
+  "query": "sum(last_5m):sum:opsdesk.api.requests{env:production,status_class:5xx}.as_count() / sum:opsdesk.api.requests{env:production}.as_count() * 100 > 5",
+  "message": "{{#is_alert}}More than 5% of API requests failed with a 5xx in the last 5 minutes ({{value}}%).{{/is_alert}}\n{{#is_warning}}API 5xx rate is elevated ({{value}}%).{{/is_warning}}\n\nTriage: open the OpsDesk service dashboard, then pivot from error logs to traces via dd.trace_id.\n@slack-opsdesk-alerts",
+  "tags": [
+    "service:opsdesk-web",
+    "team:platform",
+    "managed-by:repo"
+  ],
+  "priority": 2,
+  "options": {
+    "thresholds": {
+      "critical": 5,
+      "warning": 2
+    },
+    "notify_no_data": false,
+    "require_full_window": false,
+    "renotify_interval": 30,
+    "include_tags": true,
+    "evaluation_delay": 60
+  }
+}
