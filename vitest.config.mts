@@ -1,14 +1,13 @@
-import path from "node:path";
-import tsconfigPaths from "vite-tsconfig-paths";
+import { fileURLToPath } from "node:url";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
-  plugins: [tsconfigPaths()],
   resolve: {
+    tsconfigPaths: true,
     alias: {
       // `server-only` throws outside the React Server Components graph; tests
       // exercise server modules directly, so stub it.
-      "server-only": path.resolve(__dirname, "tests/support/server-only.ts"),
+      "server-only": fileURLToPath(new URL("./tests/support/server-only.ts", import.meta.url)),
     },
   },
   test: {
@@ -17,6 +16,5 @@ export default defineConfig({
     setupFiles: ["tests/support/setup.ts"],
     testTimeout: 30_000,
     hookTimeout: 60_000,
-    pool: "forks",
   },
 });

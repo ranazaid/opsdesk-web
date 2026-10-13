@@ -16,7 +16,7 @@ export function getTracer(): Tracer | undefined {
 }
 
 /** APM is enabled only when Datadog is configured for this environment. */
-export function isDatadogEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+export function isDatadogEnabled(env: Record<string, string | undefined> = process.env): boolean {
   if (env.DD_TRACE_ENABLED === "false") return false;
   return Boolean(env.DD_ENV || env.DD_API_KEY || env.DD_AGENT_HOST);
 }
