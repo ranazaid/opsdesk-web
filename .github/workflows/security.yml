@@ -50,7 +50,7 @@ jobs:
       - name: Upload dependency results to code scanning
         if: always() && hashFiles('snyk-deps.sarif') != ''
         continue-on-error: true
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: snyk-deps.sarif
           category: snyk-open-source
@@ -58,7 +58,7 @@ jobs:
       - name: Upload code results to code scanning
         if: always() && hashFiles('snyk-code.sarif') != ''
         continue-on-error: true
-        uses: github/codeql-action/upload-sarif@v3
+        uses: github/codeql-action/upload-sarif@v4
         with:
           sarif_file: snyk-code.sarif
           category: snyk-code
