@@ -1,0 +1,60 @@
+{
+  "name": "opsdesk-web",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "next typegen && tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "tsx scripts/migrate.ts",
+    "db:seed": "tsx scripts/seed.ts"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.133.0",
+    "@electric-sql/pglite": "^0.5.9",
+    "bcryptjs": "^3.0.3",
+    "clsx": "^2.1.1",
+    "dd-trace": "^6.20.1",
+    "drizzle-orm": "^0.45.4",
+    "jose": "^6.2.12",
+    "lucide-react": "^1.56.0",
+    "next": "^16.4.0",
+    "pg": "^8.23.1",
+    "pino": "^10.4.0",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "server-only": "^0.0.1",
+    "stripe": "^23.0.0",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "@tailwindcss/turbopack": "^4",
+    "@types/node": "^22.20.5",
+    "@types/pg": "^8.23.1",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "drizzle-kit": "^0.31.11",
+    "eslint": "^9",
+    "eslint-config-next": "16.4.0",
+    "tailwindcss": "^4",
+    "tsx": "^4.23.15",
+    "typescript": "^5",
+    "vite-tsconfig-paths": "^6.1.1",
+    "vitest": "^5.0.4"
+  },
+  "description": "OpsDesk: multi-tenant client-support portal for agencies (Next.js, PostgreSQL, Stripe, RBAC, LLM assist, Datadog).",
+  "license": "MIT",
+  "author": "Zaid Mubbashar",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/ranazaid/opsdesk-web.git"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
