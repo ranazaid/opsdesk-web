@@ -74,7 +74,7 @@ async function Dashboard() {
           ))}
         </div>
 
-        <div className="grid gap-6 xl:grid-cols-5">
+        <div className="grid items-start gap-6 xl:grid-cols-5">
           <Card className="xl:col-span-3">
             <CardHeader title="Tickets created" description="Last 14 days, all channels" />
             <div className="px-5 pt-8 pb-5">

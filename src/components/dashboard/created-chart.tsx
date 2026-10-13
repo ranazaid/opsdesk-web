@@ -10,7 +10,7 @@ export function CreatedPerDayChart({ data }: { data: { day: string; total: numbe
 
   return (
     <figure>
-      <div className="relative h-40" aria-hidden>
+      <div className="relative h-64" aria-hidden>
         {/* recessive gridlines at 0, 50% and 100% */}
         {[0, 50, 100].map((pct) => (
           <div key={pct} className="absolute inset-x-0 border-t border-slate-100" style={{ bottom: `${pct}%` }} />

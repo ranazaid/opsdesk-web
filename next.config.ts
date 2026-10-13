@@ -12,6 +12,7 @@ const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
+  devIndicators: false,
   // Pin the project root (a lockfile in a parent directory would otherwise be picked up).
   outputFileTracingRoot: process.cwd(),
   // Native / WASM / auto-instrumented packages must be loaded from node_modules
