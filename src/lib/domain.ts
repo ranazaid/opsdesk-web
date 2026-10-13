@@ -18,6 +18,10 @@ export type Plan = (typeof PLANS)[number];
 export const AI_TASKS = ["summary", "reply"] as const;
 export type AiTask = (typeof AI_TASKS)[number];
 
+/** Platforms that can register a push token (mobile companion app). */
+export const PUSH_PLATFORMS = ["ios", "android"] as const;
+export type PushPlatform = (typeof PUSH_PLATFORMS)[number];
+
 export const ROLE_LABELS: Record<Role, string> = {
   owner: "Owner",
   admin: "Admin",

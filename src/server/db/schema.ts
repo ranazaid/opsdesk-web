@@ -11,7 +11,7 @@ import {
   uniqueIndex,
   uuid,
 } from "drizzle-orm/pg-core";
-import { AI_TASKS, PLANS, ROLES, TICKET_PRIORITIES, TICKET_STATUSES } from "../../lib/domain";
+import { AI_TASKS, PLANS, PUSH_PLATFORMS, ROLES, TICKET_PRIORITIES, TICKET_STATUSES } from "../../lib/domain";
 
 /*
  * Multi-tenancy model: every tenant-owned row carries `org_id`, and every query
@@ -31,6 +31,7 @@ export const roleEnum = pgEnum("member_role", ROLES);
 export const ticketStatusEnum = pgEnum("ticket_status", TICKET_STATUSES);
 export const ticketPriorityEnum = pgEnum("ticket_priority", TICKET_PRIORITIES);
 export const aiTaskEnum = pgEnum("ai_task", AI_TASKS);
+export const pushPlatformEnum = pgEnum("push_platform", PUSH_PLATFORMS);
 
 export const organizations = pgTable("organizations", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -175,9 +176,34 @@ export const stripeEvents = pgTable("stripe_events", {
   processedAt: timestamp("processed_at", { withTimezone: true }).notNull().defaultNow(),
 });
 
+/**
+ * Expo push tokens registered by the mobile app. A token identifies one app
+ * install, so it is globally unique: when someone signs in as a different
+ * user (or in another organization) on the same device, the row moves with
+ * them instead of notifying the previous account.
+ */
+export const pushTokens = pgTable(
+  "push_tokens",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    orgId: uuid("org_id")
+      .notNull()
+      .references(() => organizations.id, { onDelete: "cascade" }),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    token: text("token").notNull().unique(),
+    platform: pushPlatformEnum("platform").notNull(),
+    createdAt: createdAt(),
+    lastSeenAt: timestamp("last_seen_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (t) => [index("push_tokens_org_user_idx").on(t.orgId, t.userId)],
+);
+
 export type Organization = typeof organizations.$inferSelect;
 export type User = typeof users.$inferSelect;
 export type Membership = typeof memberships.$inferSelect;
 export type Ticket = typeof tickets.$inferSelect;
 export type TicketComment = typeof ticketComments.$inferSelect;
 export type AuditLog = typeof auditLogs.$inferSelect;
+export type PushToken = typeof pushTokens.$inferSelect;
