@@ -1,4 +1,4 @@
-import type { DbExecutor } from "@/server/db/client";
+import { type DbExecutor, getDb } from "@/server/db/client";
 import { UnauthorizedError } from "@/server/errors";
 import { type Actor, loadActor } from "./actor";
 import { verifyToken } from "./tokens";
@@ -15,4 +15,10 @@ export async function authenticateBearer(db: DbExecutor, request: Request): Prom
   const actor = await loadActor(db, claims);
   if (!actor) throw new UnauthorizedError("Membership no longer active");
   return actor;
+}
+
+/** Database handle + authenticated actor for a REST API route. */
+export async function apiContext(request: Request) {
+  const db = await getDb();
+  return { db, actor: await authenticateBearer(db, request) };
 }

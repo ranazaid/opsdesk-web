@@ -1,7 +1,7 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { formatIssues } from "@/lib/validators/common";
-import { AppError, RateLimitError, ValidationError } from "@/server/errors";
+import { formatIssues, uuidSchema } from "@/lib/validators/common";
+import { AppError, NotFoundError, RateLimitError, ValidationError } from "@/server/errors";
 
 export interface ErrorBody {
   error: { code: string; message: string; details?: unknown };
@@ -57,4 +57,11 @@ export function withApi<C>(name: string, handler: RouteHandler<C>): RouteHandler
       return errorResponse(error);
     }
   };
+}
+
+/** Route params arrive as strings; anything that isn't a UUID is simply "not found". */
+export function parseId(id: string): string {
+  const parsed = uuidSchema.safeParse(id);
+  if (!parsed.success) throw new NotFoundError();
+  return parsed.data;
 }
