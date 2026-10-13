@@ -3,7 +3,7 @@ import { DEMO_ACCOUNTS, DEMO_ORG, DEMO_PASSWORD, SECOND_DEMO_ORG, SECOND_ORG_ACC
 import type { Plan, Role } from "@/lib/domain";
 import { hashPassword } from "@/server/auth/password";
 import type { Database } from "./client";
-import { auditLogs, memberships, organizations, ticketComments, tickets, users } from "./schema";
+import { aiUsage, auditLogs, memberships, organizations, ticketComments, tickets, users } from "./schema";
 import { GLOBEX_TICKETS, NORTHWIND_TICKETS, type SeedTicket, type StaffKey } from "./seed-data";
 
 const HOUR = 3_600_000;
@@ -171,6 +171,24 @@ export async function seedDemoData(
 
     await insertQueue(northwind.id, NORTHWIND_TICKETS, staff.adam, true);
     await insertQueue(globex.id, GLOBEX_TICKETS, userId(SECOND_ORG_ACCOUNT.email), false);
+
+    // Some AI assist history this month, so quotas and the billing page have data.
+    const monthStart = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), 1);
+    const span = Math.max(1, now.getTime() - monthStart);
+    const agents = [staff.aisha, staff.marco, staff.adam];
+    await tx.insert(aiUsage).values(
+      Array.from({ length: 37 }, (_, i) => ({
+        orgId: northwind.id,
+        userId: agents[i % agents.length],
+        task: i % 3 === 0 ? ("reply" as const) : ("summary" as const),
+        provider: "mock",
+        model: "opsdesk-mock-1",
+        inputTokens: 900 + ((i * 137) % 600),
+        outputTokens: 140 + ((i * 53) % 120),
+        latencyMs: 700 + ((i * 211) % 1400),
+        createdAt: new Date(monthStart + ((i + 0.5) / 37) * span),
+      })),
+    );
 
     return {
       northwind: { orgId: northwind.id, users: staff },

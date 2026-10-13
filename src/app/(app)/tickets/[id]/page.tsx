@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { Suspense } from "react";
 import { ArrowLeft, Lock, Mail } from "lucide-react";
+import { AiAssistPanel } from "@/components/ai/ai-assist-panel";
 import { ActivityFeed } from "@/components/activity-feed";
 import { PageBody, PageHeader, PageSkeleton } from "@/components/shell/page-header";
 import { PriorityLabel, StatusBadge } from "@/components/tickets/badges";
@@ -15,8 +16,11 @@ import { Card, CardHeader } from "@/components/ui/card";
 import { cn } from "@/lib/cn";
 import { formatDateTime, formatRelative } from "@/lib/format";
 import { can } from "@/lib/permissions";
+import { entitlementsFor } from "@/lib/plans";
 import { uuidSchema } from "@/lib/validators/common";
+import { getAiProvider } from "@/server/ai";
 import { requireActor } from "@/server/auth/session";
+import { getUsage } from "@/server/billing/entitlements";
 import { getDb } from "@/server/db/client";
 import { NotFoundError } from "@/server/errors";
 import {
@@ -43,13 +47,14 @@ async function loadTicket(id: string) {
   const db = await getDb();
   try {
     const ticket = await getTicket(db, actor, id);
-    const [comments, activity, assignees, names] = await Promise.all([
+    const [comments, activity, assignees, names, usage] = await Promise.all([
       listComments(db, actor, id),
       can(actor.role, "audit:read") ? listTicketActivity(db, actor, id) : Promise.resolve([]),
       listAssignableMembers(db, actor),
       memberNameMap(db, actor.orgId),
+      getUsage(db, actor.orgId),
     ]);
-    return { actor, ticket, comments, activity, assignees, names };
+    return { actor, ticket, comments, activity, assignees, names, usage };
   } catch (error) {
     if (error instanceof NotFoundError) notFound();
     throw error;
@@ -58,8 +63,9 @@ async function loadTicket(id: string) {
 
 async function TicketView({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const { actor, ticket, comments, activity, assignees, names } = await loadTicket(id);
+  const { actor, ticket, comments, activity, assignees, names, usage } = await loadTicket(id);
   const now = new Date();
+  const provider = getAiProvider();
 
   return (
     <>
@@ -165,6 +171,15 @@ async function TicketView({ params }: { params: Promise<{ id: string }> }) {
           </div>
 
           <div className="space-y-6">
+            {can(actor.role, "ai:use") ? (
+              <AiAssistPanel
+                ticketId={ticket.id}
+                providerLabel={provider.name === "mock" ? "Offline mock" : `Claude · ${provider.model}`}
+                used={usage.aiRequestsThisMonth}
+                limit={entitlementsFor(actor.plan).aiRequestsPerMonth}
+              />
+            ) : null}
+
             <Card>
               <CardHeader title="Properties" />
               <TicketPropertiesForm
