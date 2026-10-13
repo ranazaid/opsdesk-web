@@ -263,6 +263,9 @@ sequenceDiagram
 
 ## REST API (mobile app)
 
+The React Native companion app, **[opsdesk-mobile](https://github.com/ranazaid/opsdesk-mobile)**, consumes these
+endpoints. Route-level tests for the mobile-only endpoints are in [`tests/mobile-api.test.ts`](tests/mobile-api.test.ts).
+
 All endpoints except login require `Authorization: Bearer <accessToken>`. Errors share one shape:
 `{ "error": { "code", "message", "details?" } }`. Validation failures return 422, plan limits 402, and rate limits
 429 with a `Retry-After` header.
@@ -278,6 +281,8 @@ All endpoints except login require `Authorization: Bearer <accessToken>`. Errors
 | `GET`   | `/api/v1/tickets/:id/comments`    | Thread (including internal notes)                             |
 | `POST`  | `/api/v1/tickets/:id/comments`    | Reply or internal note                                        |
 | `POST`  | `/api/v1/ai/summary`              | `{ ticketId, task: "summary" \| "reply", stream? }`           |
+| `GET`   | `/api/v1/members`                 | Organization members (assignee picker), requires `member:read` |
+| `POST`  | `/api/v1/devices/push-token`      | Register an Expo push token `{ token, platform }` (upsert)      |
 
 ```bash
 TOKEN=$(curl -s localhost:3000/api/v1/auth/login -H 'content-type: application/json' \
