@@ -1,0 +1,24 @@
+# Optional: run against a real PostgreSQL instead of the embedded PGlite database.
+#   docker compose up -d
+#   export DATABASE_URL=postgres://opsdesk:opsdesk@localhost:5432/opsdesk
+#   npm run db:migrate && npm run db:seed
+services:
+  postgres:
+    image: postgres:17-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: opsdesk
+      POSTGRES_PASSWORD: opsdesk
+      POSTGRES_DB: opsdesk
+    ports:
+      - "5432:5432"
+    volumes:
+      - opsdesk-pg:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U opsdesk -d opsdesk"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  opsdesk-pg:
