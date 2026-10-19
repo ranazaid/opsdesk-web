@@ -17,7 +17,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.133.0",
-    "@electric-sql/pglite": "^0.5.9",
+    "@electric-sql/pglite": "^0.5.10",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "dd-trace": "^6.20.1",
