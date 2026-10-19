@@ -16,14 +16,14 @@
     "db:seed": "tsx scripts/seed.ts"
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.133.0",
+    "@anthropic-ai/sdk": "^0.135.0",
     "@electric-sql/pglite": "^0.5.9",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "dd-trace": "^6.20.1",
     "drizzle-orm": "^0.45.4",
     "jose": "^6.2.12",
-    "lucide-react": "^1.56.0",
+    "lucide-react": "^1.58.0",
     "next": "^16.4.0",
     "pg": "^8.23.1",
     "pino": "^10.4.0",
