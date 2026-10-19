@@ -20,7 +20,7 @@
     "@electric-sql/pglite": "^0.5.9",
     "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
-    "dd-trace": "^6.20.1",
+    "dd-trace": "^6.21.0",
     "drizzle-orm": "^0.45.4",
     "jose": "^6.2.12",
     "lucide-react": "^1.56.0",
